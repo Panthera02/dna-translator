@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA Translator Web App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 600px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+            color: #aaaaaa;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            background-color: #2c2c2c;
+            color: #ffffff;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        textarea#dnaInput {
+            font-family: 'Courier New', Courier, monospace;
+            color: #64B5F6;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1;
+            margin: 0 5px;
+        }
+        .btn-green { background-color: #4CAF50; color: white; }
+        .btn-green:hover { background-color: #45a049; }
+        .btn-blue { background-color: #2196F3; color: white; }
+        .btn-blue:hover { background-color: #1e88e5; }
+        .btn-gray { background-color: #757575; color: white; }
+        .btn-gray:hover { background-color: #616161; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>DNA ↔ Text Translator</h2>
+
+    <label for="textInput">Standard Text / English</label>
+    <textarea id="textInput" placeholder="Enter text here..."></textarea>
+
+    <div class="buttons">
+        <button class="btn-green" onclick="convertToDNA()">▼ Text to DNA</button>
+        <button class="btn-blue" onclick="convertToText()">▲ DNA to Text</button>
+        <button class="btn-gray" onclick="clearFields()">Clear All</button>
+    </div>
+
+    <label for="dnaInput">DNA Sequence (A, C, G, T)</label>
+    <textarea id="dnaInput" placeholder="Enter DNA sequence here..."></textarea>
+</div>
+
+<script>
+    const dnaMap = {'00': 'A', '01': 'C', '10': 'G', '11': 'T'};
+    const binMap = {'A': '00', 'C': '01', 'G': '10', 'T': '11'};
+
+    function convertToDNA() {
+        const text = document.getElementById('textInput').value;
+        if (!text) return alert("Please enter text.");
+
+        // Convert string to UTF-8 bytes
+        const encoder = new TextEncoder();
+        const bytes = encoder.encode(text);
+        
+        let dnaSequence = "";
+        for (let byte of bytes) {
+            let binaryStr = byte.toString(2).padStart(8, '0');
+            for (let i = 0; i < 8; i += 2) {
+                let chunk = binaryStr.substring(i, i + 2);
+                dnaSequence += dnaMap[chunk];
+            }
+        }
+        document.getElementById('dnaInput').value = dnaSequence;
+    }
+
+    function convertToText() {
+        let dna = document.getElementById('dnaInput').value.toUpperCase().replace(/\s/g, '');
+        if (!dna) return alert("Please enter DNA.");
+
+        let binaryStr = "";
+        for (let char of dna) {
+            if (binMap[char]) {
+                binaryStr += binMap[char];
+            } else {
+                return alert("Error: Invalid DNA character found.");
+            }
+        }
+
+        let byteArray = [];
+        for (let i = 0; i < binaryStr.length; i += 8) {
+            let byteChunk = binaryStr.substring(i, i + 8);
+            if (byteChunk.length === 8) {
+                byteArray.push(parseInt(byteChunk, 2));
+            }
+        }
+
+        // Convert UTF-8 bytes back to string
+        const decoder = new TextDecoder();
+        try {
+            const text = decoder.decode(new Uint8Array(byteArray));
+            document.getElementById('textInput').value = text;
+        } catch (e) {
+            alert("Error decoding DNA back to text.");
+        }
+    }
+
+    function clearFields() {
+        document.getElementById('textInput').value = "";
+        document.getElementById('dnaInput').value = "";
+    }
+</script>
+
+</body>
+</html>
